@@ -367,23 +367,7 @@ begin
   if not public.is_admin() then raise exception '관리자 권한이 필요합니다.'; end if;
 end $$;
 
--- 캐릭터 정보 수정
-create or replace function public.admin_update_profile(
-  p_id uuid, p_name text, p_team text, p_position text, p_threads integer, p_is_admin boolean)
-returns void language plpgsql security definer set search_path = public as $$
-begin
-  perform _require_admin();
-  if p_id = auth.uid() and not coalesce(p_is_admin, false) then
-    raise exception '자기 자신의 관리자 권한은 해제할 수 없습니다.';
-  end if;
-  update profiles
-     set name = coalesce(p_name, name),
-         team = nullif(p_team, ''),
-         position = nullif(p_position, ''),
-         threads = greatest(0, coalesce(p_threads, threads)),
-         is_admin = coalesce(p_is_admin, is_admin)
-   where id = p_id;
-end $$;
+-- (캐릭터 정보 수정 admin_update_profile 은 04_features.sql 로 옮겨졌습니다)
 
 -- 전투 생성 (각 파티 1~3명, 정식 규칙은 2~3명)
 create or replace function public.admin_create_battle(
@@ -506,7 +490,6 @@ revoke execute on function public.handle_new_user()                         from
 
 revoke execute on function public.submit_action(bigint, integer, text, bigint) from public, anon;
 revoke execute on function public.send_battle_chat(bigint, text, text)         from public, anon;
-revoke execute on function public.admin_update_profile(uuid, text, text, text, integer, boolean) from public, anon;
 revoke execute on function public.admin_create_battle(integer, text, text, uuid[], text, uuid[], text, text) from public, anon;
 revoke execute on function public.admin_start_battle(bigint)          from public, anon;
 revoke execute on function public.admin_force_resolve(bigint)         from public, anon;
@@ -518,7 +501,6 @@ revoke execute on function public.admin_delete_battle(bigint)         from publi
 grant execute on function public.is_admin() to authenticated;
 grant execute on function public.submit_action(bigint, integer, text, bigint) to authenticated;
 grant execute on function public.send_battle_chat(bigint, text, text)         to authenticated;
-grant execute on function public.admin_update_profile(uuid, text, text, text, integer, boolean) to authenticated;
 grant execute on function public.admin_create_battle(integer, text, text, uuid[], text, uuid[], text, text) to authenticated;
 grant execute on function public.admin_start_battle(bigint)          to authenticated;
 grant execute on function public.admin_force_resolve(bigint)         to authenticated;
