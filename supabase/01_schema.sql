@@ -10,7 +10,7 @@ create table if not exists public.profiles (
   id            uuid primary key references auth.users(id) on delete cascade,
   login_id      text unique not null,
   name          text not null default '',
-  team          text check (team in ('A','B','C')),
+  team          text,                                                     -- 소속 팀 (예: 자명고, 이글, 아타락시아)
   position      text check (position in ('dealer','supporter','healer')),  -- null = 포지션 없음(전부 사용)
   threads       integer not null default 0 check (threads >= 0),           -- 실타래
   is_admin      boolean not null default false,
@@ -86,7 +86,7 @@ create table if not exists public.battle_parties (
   id         bigint generated always as identity primary key,
   battle_id  bigint not null references public.battles(id) on delete cascade,
   side       smallint not null check (side in (1,2)),
-  team       text not null check (team in ('A','B','C')),
+  team       text not null,
   name       text not null default '',
   speed_pool integer not null default 100,       -- 파티 공용 속도 투자 가능치
   unique (battle_id, side)
@@ -123,7 +123,7 @@ create table if not exists public.battle_logs (
   id         bigint generated always as identity primary key,
   battle_id  bigint not null references public.battles(id) on delete cascade,
   round      smallint not null default 0,
-  kind       text not null default 'info',   -- round / act / crit / down / admin / result / info
+  kind       text not null default 'info',   -- round / act / crit / passive / down / admin / result / info
   message    text not null,
   created_at timestamptz not null default now()
 );

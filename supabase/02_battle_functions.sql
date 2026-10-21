@@ -20,7 +20,7 @@ $$;
 
 create or replace function public._party_label(p_party bigint) returns text
 language sql stable security definer set search_path = public as $$
-  select coalesce(nullif(name, ''), team || '팀') from battle_parties where id = p_party
+  select coalesce(nullif(name, ''), team) from battle_parties where id = p_party
 $$;
 
 -- 이번 라운드에 파티가 아직 쓸 수 있는 속도 (= 잔여 풀 - 이번 라운드 이미 결정된 속도)
@@ -105,6 +105,9 @@ declare
   v_tags   text;
   v_alive1 integer;
   v_alive2 integer;
+  v_rate   numeric;
+  v_mult   numeric;
+  v_selfhp integer;
 begin
   select * into v_b from battles where id = p_battle_id for update;
   if not found or v_b.status <> 'active' then return; end if;
@@ -124,11 +127,12 @@ begin
 
   perform _battle_log(p_battle_id, r, 'round', format('━━━━━━  %s 라운드  ━━━━━━', r));
 
-  -- 속도 높은 순 (같으면 무작위)
+  -- 속도 높은 순. 같으면 자명고 우선, 그다음 무작위
   for a in
-    select ba.* from battle_actions ba
+    select ba.*, bp.team from battle_actions ba
+      join battle_parties bp on bp.id = ba.party_id
      where ba.battle_id = p_battle_id and ba.round = r
-     order by ba.speed desc, random()
+     order by ba.speed desc, (bp.team = '자명고') desc, random()
   loop
     select * into v_actor from battle_members where id = a.member_id;
     v_name := _member_name(a.member_id);
@@ -167,19 +171,23 @@ begin
                 when 'heal'    then 21 + floor(random() * 10)::int   -- 21~30
               end;
 
-    -- 크리티컬 10% → 1.5배
-    v_crit := random() < 0.1;
-    v_val  := case when v_crit then floor(v_base * 1.5)::int else v_base end;
-
-    -- 증진 적용 (증진 자체에는 적용하지 않음)
+    -- 증진 적용: 크리티컬보다 먼저 더함 (증진 스킬 자체에는 적용하지 않음)
     v_boost := 0;
+    v_val   := v_base;
     if v_actor.boost > 0 and a.action <> 'boost' then
       v_boost := v_actor.boost;
       v_val   := v_val + v_boost;
       update battle_members set boost = 0 where id = v_actor.id;
     end if;
 
-    v_tags := case when v_crit then ' [크리티컬!]' else '' end
+    -- 크리티컬: 기본 10% × 1.5
+    --   이글: 확률 15%, 공격·강타는 × 2
+    v_rate := case when a.team = '이글' then 0.15 else 0.10 end;
+    v_mult := case when a.team = '이글' and a.action in ('attack', 'smash') then 2 else 1.5 end;
+    v_crit := random() < v_rate;
+    if v_crit then v_val := floor(v_val * v_mult)::int; end if;
+
+    v_tags := case when v_crit then format(' [크리티컬 ×%s!]', trim(trailing '.0' from v_mult::text)) else '' end
            || case when v_boost > 0 then format(' [증진 +%s]', v_boost) else '' end;
 
     if a.action in ('attack', 'smash') then
@@ -214,6 +222,14 @@ begin
       perform _battle_log(p_battle_id, r, case when v_crit then 'crit' else 'act' end,
         format('%s (속도 %s) ▸ 치유 → %s 체력 %s 회복%s  (체력 %s)',
                v_name, a.speed, v_tname, v_t.hp - v_old, v_tags, v_t.hp));
+    end if;
+
+    -- 아타락시아: 크리티컬 시 행동한 캐릭터 체력 10 회복
+    if v_crit and a.team = '아타락시아' then
+      select hp into v_old from battle_members where id = v_actor.id;
+      update battle_members set hp = least(max_hp, hp + 10) where id = v_actor.id returning hp into v_selfhp;
+      perform _battle_log(p_battle_id, r, 'passive',
+        format('  └ 아타락시아 · %s 체력 %s 회복  (체력 %s)', v_name, v_selfhp - v_old, v_selfhp));
     end if;
   end loop;
 
@@ -381,6 +397,7 @@ declare
 begin
   perform _require_admin();
   if p_room not between 1 and 3 then raise exception '전투 방은 1~3번입니다.'; end if;
+  if coalesce(p_team1, '') = '' or coalesce(p_team2, '') = '' then raise exception '팀을 지정하세요.'; end if;
   if p_team1 = p_team2 then raise exception '서로 다른 팀끼리만 전투할 수 있습니다.'; end if;
   if coalesce(array_length(p_members1, 1), 0) not between 1 and 3
      or coalesce(array_length(p_members2, 1), 0) not between 1 and 3 then
@@ -394,10 +411,13 @@ begin
   end if;
 
   insert into battles (room, title) values (p_room, coalesce(p_title, '')) returning id into v_id;
-  insert into battle_parties (battle_id, side, team, name)
-    values (v_id, 1, p_team1, coalesce(p_name1, '')) returning id into v_p1;
-  insert into battle_parties (battle_id, side, team, name)
-    values (v_id, 2, p_team2, coalesce(p_name2, '')) returning id into v_p2;
+  -- 자명고: 파티 속도 시작치 120
+  insert into battle_parties (battle_id, side, team, name, speed_pool)
+    values (v_id, 1, p_team1, coalesce(p_name1, ''), case when p_team1 = '자명고' then 120 else 100 end)
+    returning id into v_p1;
+  insert into battle_parties (battle_id, side, team, name, speed_pool)
+    values (v_id, 2, p_team2, coalesce(p_name2, ''), case when p_team2 = '자명고' then 120 else 100 end)
+    returning id into v_p2;
 
   foreach u in array p_members1 loop
     insert into battle_members (battle_id, party_id, profile_id) values (v_id, v_p1, u);
@@ -418,7 +438,10 @@ begin
   update battles set status = 'active', round = 1, started_at = now()
    where id = p_battle_id and status = 'waiting';
   if not found then raise exception '대기 중인 전투가 아닙니다.'; end if;
-  perform _battle_log(p_battle_id, 1, 'round', '전투 시작! 각 파티에는 속도 100이 주어집니다.');
+  perform _battle_log(p_battle_id, 1, 'round', '전투 시작!');
+  perform _battle_log(p_battle_id, 1, 'info',
+    (select string_agg(format('%s 속도 %s', _party_label(id), speed_pool), ' · ' order by side)
+       from battle_parties where battle_id = p_battle_id));
   perform _battle_log(p_battle_id, 1, 'info', '1 라운드 — 각 파티는 속도와 행동을 결정하세요.');
 end $$;
 
