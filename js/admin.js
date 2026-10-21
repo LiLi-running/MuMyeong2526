@@ -7,7 +7,9 @@ const me = await renderLayout();
 
 const body = () => document.getElementById('tab-body');
 let profiles = [];
-const teamNames = () => [...new Set([...Object.keys(TEAM_PASSIVES), ...profiles.map(p => p.team).filter(Boolean)])];
+// 팀 선택지: 기본 A·B·C + 패시브 팀 + 캐릭터에 입력된 그 밖의 팀
+const BASE_TEAMS = ['A', 'B', 'C'];
+const teamNames = () => [...new Set([...BASE_TEAMS, ...Object.keys(TEAM_PASSIVES), ...profiles.map(p => p.team).filter(Boolean)])];
 
 async function loadProfiles() {
   const { data, error } = await sb.from('profiles').select('*').order('team', { nullsFirst: false }).order('login_id');
