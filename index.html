@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>무명의 유산</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="page">
+      <div class="home">
+        <section class="card">
+          <div class="cal-head">
+            <h2 id="cal-title"></h2>
+            <div class="cal-nav">
+              <button class="btn ghost sm" id="cal-prev" aria-label="이전 달">‹</button>
+              <button class="btn ghost sm" id="cal-today">오늘</button>
+              <button class="btn ghost sm" id="cal-next" aria-label="다음 달">›</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </section>
+
+        <aside class="side-stack">
+          <div class="card" id="auth-box"></div>
+          <a class="card quick" id="link-twitter" target="_blank" rel="noopener">
+            <div><b>공식 트위터</b><small>공지와 소식을 가장 먼저</small></div>
+            <span class="arrow">↗</span>
+          </a>
+          <a class="card quick" id="link-apply" target="_blank" rel="noopener">
+            <div><b>신청서 양식</b><small>캐릭터 신청하기</small></div>
+            <span class="arrow">↗</span>
+          </a>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>
