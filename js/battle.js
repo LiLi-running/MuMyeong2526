@@ -1,6 +1,6 @@
 // 차원의 틈 — 방 목록 + 전투방
 // 이 파일은 "보여주기"와 "선택 전송"만 합니다. 판정은 전부 서버(submit_action)에서.
-import { sb, esc, errMsg, toast, POSITION_LABEL } from './supabase.js';
+import { sb, esc, errMsg, toast, POSITION_LABEL, TEAM_PASSIVES } from './supabase.js';
 import { renderLayout } from './layout.js';
 
 const page = document.getElementById('page');
@@ -46,7 +46,7 @@ async function renderRoomList() {
     .order('id', { ascending: false }).limit(40);
   if (error) { toast(errMsg(error), 'error'); return; }
 
-  const label = p => esc(p?.name || `${p?.team}팀`);
+  const label = p => esc(p?.name || p?.team);
   const names = p => (p?.members ?? []).map(m => esc(m.profile?.name || m.profile?.login_id)).join(', ');
 
   document.getElementById('rooms').innerHTML = [1, 2, 3].map(room => {
@@ -166,7 +166,8 @@ async function refresh() {
 }
 
 // ---------- 렌더 ----------
-const partyLabel = p => p ? esc(p.name || `${p.team}팀`) : '';
+const partyText = p => p ? (p.name || p.team) : '';
+const partyLabel = p => esc(partyText(p));
 const nameOf = m => esc(m?.profile?.name || m?.profile?.login_id || '?');
 
 function render() {
@@ -178,10 +179,10 @@ function render() {
   document.getElementById('round-label').textContent =
     battle.status === 'active' ? `${battle.round} / ${battle.max_rounds} 라운드` : battle.status === 'waiting' ? '시작 전' : '종료';
 
-  document.getElementById('left-title').textContent = spectator ? partyLabel(myParty) : `우리 파티 · ${myParty?.name || myParty?.team + '팀'}`;
-  document.getElementById('right-title').textContent = spectator ? partyLabel(foeParty) : `상대 · ${foeParty?.name || foeParty?.team + '팀'}`;
-  document.getElementById('left-team').textContent = myParty ? `${myParty.team}팀` : '';
-  document.getElementById('right-team').textContent = foeParty ? `${foeParty.team}팀` : '';
+  document.getElementById('left-title').textContent = spectator ? partyText(myParty) : `우리 파티 · ${partyText(myParty)}`;
+  document.getElementById('right-title').textContent = spectator ? partyText(foeParty) : `상대 · ${partyText(foeParty)}`;
+  document.getElementById('left-team').textContent = myParty?.team ?? '';
+  document.getElementById('right-team').textContent = foeParty?.team ?? '';
   document.getElementById('left-hp').innerHTML = hpList(myParty, true);
   document.getElementById('right-hp').innerHTML = hpList(foeParty, false);
 
@@ -194,7 +195,8 @@ function render() {
 function hpList(party, ally) {
   if (!party) return '';
   const r = S.battle.round;
-  return S.members.filter(m => m.party_id === party.id).map(m => {
+  const passive = TEAM_PASSIVES[party.team];
+  return (passive ? `<div class="passive-note"><b>${esc(party.team)}</b> ${esc(passive)}</div>` : '') + S.members.filter(m => m.party_id === party.id).map(m => {
     const pct = Math.max(0, Math.min(100, (m.hp / m.max_hp) * 100));
     const pos = POSITION_LABEL[m.profile?.position] ?? '포지션 없음';
     const decided = S.battle.status === 'active' && S.actions.some(a => a.member_id === m.id && a.round === r);

@@ -1,5 +1,5 @@
 // 관리자 페이지 — 주소를 알아도 서버가 관리자 계정이 아니면 모든 요청을 거부합니다.
-import { sb, esc, errMsg, toast, POSITION_LABEL } from './supabase.js';
+import { sb, esc, errMsg, toast, POSITION_LABEL, TEAM_PASSIVES } from './supabase.js';
 import { renderLayout } from './layout.js';
 
 const page = document.getElementById('page');
@@ -7,6 +7,7 @@ const me = await renderLayout();
 
 const body = () => document.getElementById('tab-body');
 let profiles = [];
+const teamNames = () => [...new Set([...Object.keys(TEAM_PASSIVES), ...profiles.map(p => p.team).filter(Boolean)])];
 
 async function loadProfiles() {
   const { data, error } = await sb.from('profiles').select('*').order('team', { nullsFirst: false }).order('login_id');
@@ -23,12 +24,14 @@ const TABS = {
       <p class="muted" style="margin-top:0;font-size:13.5px">
         새 계정은 Supabase 대시보드 › Authentication › Users › <b>Add user</b> 에서 <code>아이디@nameless.legacy</code> 형식으로 만들면 여기에 자동으로 나타납니다.
       </p>
+      <datalist id="team-list">${teamNames().map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+      <p class="muted" style="font-size:13px">팀은 직접 입력합니다. <b>자명고 · 이글 · 아타락시아</b>는 이름이 정확히 같아야 패시브가 적용됩니다.</p>
       <div style="overflow-x:auto"><table class="table">
         <thead><tr><th>아이디</th><th>이름</th><th>팀</th><th>포지션</th><th>실타래</th><th>관리자</th><th></th></tr></thead>
         <tbody>${profiles.map(p => `<tr data-id="${p.id}">
           <td>${esc(p.login_id)}</td>
           <td><input class="input" data-f="name" value="${esc(p.name)}"></td>
-          <td><select class="input" data-f="team">${opt('', p.team, '—')}${['A', 'B', 'C'].map(t => opt(t, p.team, t + '팀')).join('')}</select></td>
+          <td><input class="input" data-f="team" list="team-list" style="width:130px" value="${esc(p.team ?? '')}" placeholder="팀 이름"></td>
           <td><select class="input" data-f="position">${opt('', p.position, '없음 (전부 사용)')}${Object.entries(POSITION_LABEL).map(([k, l]) => opt(k, p.position, l)).join('')}</select></td>
           <td><input class="input" data-f="threads" type="number" min="0" style="width:90px" value="${p.threads}"></td>
           <td><input type="checkbox" data-f="is_admin" ${p.is_admin ? 'checked' : ''}></td>
@@ -39,7 +42,7 @@ const TABS = {
     body().querySelectorAll('[data-save]').forEach(btn => btn.addEventListener('click', async () => {
       const tr = btn.closest('tr'), f = n => tr.querySelector(`[data-f="${n}"]`);
       const { error } = await sb.rpc('admin_update_profile', {
-        p_id: tr.dataset.id, p_name: f('name').value.trim(), p_team: f('team').value, p_position: f('position').value,
+        p_id: tr.dataset.id, p_name: f('name').value.trim(), p_team: f('team').value.trim(), p_position: f('position').value,
         p_threads: Number(f('threads').value) || 0, p_is_admin: f('is_admin').checked,
       });
       error ? toast(errMsg(error), 'error') : toast('저장했습니다.');
@@ -53,12 +56,13 @@ const TABS = {
       .select('*, parties:battle_parties(side, team, name, members:battle_members(profile:profiles(name, login_id)))')
       .order('id', { ascending: false }).limit(30);
 
+    const teams = teamNames();
     const pickBox = (side, team) => `
       <div class="picker-box">
         <div class="row">
           <label class="field"><span>${side}측 팀</span>
-            <select class="input" id="team${side}">${['A', 'B', 'C'].map(t => `<option ${t === team ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-          <label class="field"><span>파티 이름 (선택)</span><input class="input" id="pname${side}" placeholder="예: ${team}팀 1파티"></label>
+            <select class="input" id="team${side}">${teams.map(t => `<option ${t === team ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>
+          <label class="field"><span>파티 이름 (선택)</span><input class="input" id="pname${side}" placeholder="비우면 팀 이름"></label>
         </div>
         <div class="label">파티원 (2~3명 권장)</div>
         <div class="pick-list" id="pick${side}"></div>
@@ -72,7 +76,7 @@ const TABS = {
             <select class="input" id="room">${[1, 2, 3].map(r => `<option value="${r}">ROOM ${r}</option>`).join('')}</select></label>
           <label class="field"><span>제목 (선택)</span><input class="input" id="title" placeholder="예: 1차 균열 조사"></label>
         </div>
-        <div class="picker">${pickBox(1, 'A')}${pickBox(2, 'B')}</div>
+        <div class="picker">${pickBox(1, teams[0])}${pickBox(2, teams[1])}</div>
         <div style="margin-top:14px"><button class="btn" id="create">전투방 만들기</button></div>
       </div>
       <div class="card">
@@ -80,7 +84,7 @@ const TABS = {
         ${battles?.length ? `<table class="table"><thead><tr><th>#</th><th>방</th><th>대진</th><th>상태</th><th></th></tr></thead><tbody>${
           battles.map(b => {
             const ps = [...b.parties].sort((x, y) => x.side - y.side);
-            const vs = ps.map(p => `${esc(p.name || p.team + '팀')} <small class="muted">(${p.members.map(m => esc(m.profile?.name || m.profile?.login_id)).join(', ')})</small>`).join(' vs ');
+            const vs = ps.map(p => `${esc(p.name || p.team)} <small class="muted">(${p.members.map(m => esc(m.profile?.name || m.profile?.login_id)).join(', ')})</small>`).join(' vs ');
             const st = { waiting: '대기', active: `${b.round}R 진행`, finished: '종료' }[b.status];
             return `<tr><td>${b.id}</td><td>${b.room}</td><td>${vs}</td><td>${st}</td>
               <td style="white-space:nowrap">

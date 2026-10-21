@@ -5,6 +5,13 @@ export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export const POSITION_LABEL = { dealer: '딜러', supporter: '서포터', healer: '힐러' };
 
+// 팀 패시브 (실제 효과는 서버의 02_battle_functions.sql 에서 처리. 여기는 표시용)
+export const TEAM_PASSIVES = {
+  '자명고': '파티 속도 시작치 120 · 같은 속도면 먼저 행동',
+  '이글': '크리티컬 확률 15% · 공격/강타 크리티컬 ×2',
+  '아타락시아': '크리티컬 시 행동한 캐릭터 체력 10 회복',
+};
+
 export function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
