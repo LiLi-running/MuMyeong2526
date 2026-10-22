@@ -118,56 +118,42 @@ const TABS = {
     };
   },
 
-  // ------------------------------------------------------------ 안내글
-  async posts(cat = 'notice', selected = null) {
+  // ------------------------------------------------------------ 안내글 (메뉴마다 글 1개)
+  async posts(cat = 'notice') {
     const { data: list } = await sb.from('posts').select('*').eq('category', cat)
-      .order('pinned', { ascending: false }).order('sort_order').order('created_at', { ascending: false });
-    const posts = list ?? [];
-    const cur = selected === 'new' ? null : posts.find(p => p.id === selected) ?? null;
-    const editing = selected === 'new' || cur;
+      .order('updated_at', { ascending: false });
+    const cur = (list ?? [])[0] ?? null;            // 가장 최근 글 1개를 편집
+    const extra = (list ?? []).slice(1);             // 예전 방식으로 여러 개 쓴 글이 남아 있으면
 
     body().innerHTML = `
       <div class="chips">${Object.entries(CATS).map(([k, l]) => `<button class="chip${k === cat ? ' on' : ''}" data-cat="${k}">${l}</button>`).join('')}</div>
-      <div class="post-admin">
-        <div class="card pa-list">
-          <button class="btn block sm" id="p-new">+ 새 글</button>
-          ${posts.map(p => `<button class="pa-item${cur?.id === p.id ? ' on' : ''}" data-id="${p.id}">
-            ${p.pinned ? '<span class="tag gold">고정</span> ' : ''}${esc(p.title)}${p.published ? '' : ' <span class="tag">비공개</span>'}
-            <small>${fmtDate(p.created_at)}</small></button>`).join('') || '<div class="muted" style="padding:10px 2px">글이 없습니다.</div>'}
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+          <h3 style="margin:0">${CATS[cat]}</h3>
+          <span class="muted" style="font-size:13px">${cur ? `마지막 저장 ${fmtDateTime(cur.updated_at ?? cur.created_at)}` : '아직 작성하지 않았습니다'}</span>
         </div>
-        <div class="card">${editing ? `
-          <div class="row">
-            <label class="field" style="flex:3"><span>제목</span><input class="input" id="p-title" value="${esc(cur?.title ?? '')}"></label>
-            <label class="field" style="max-width:110px"><span>정렬 순서</span><input class="input" type="number" id="p-sort" value="${cur?.sort_order ?? 0}"></label>
-          </div>
-          <div class="row" style="align-items:center;margin-bottom:10px">
-            <label><input type="checkbox" id="p-pub" ${cur?.published ?? true ? 'checked' : ''}> 공개</label>
-            <label><input type="checkbox" id="p-pin" ${cur?.pinned ? 'checked' : ''}> 맨 위 고정</label>
-            <span style="flex:3"></span>
-          </div>
-          <div class="md-toolbar">
-            <button type="button" class="btn ghost sm" data-ins="h">제목</button>
-            <button type="button" class="btn ghost sm" data-ins="b">굵게</button>
-            <button type="button" class="btn ghost sm" data-ins="table">표</button>
-            <label class="btn ghost sm">그림<input type="file" id="p-img" accept="image/png,image/jpeg,image/gif,image/webp" hidden></label>
-            <span class="muted" style="font-size:12px">마크다운으로 작성 · 오른쪽에 미리보기</span>
-          </div>
-          <div class="md-editor">
-            <textarea class="input" id="p-body" spellcheck="false">${esc(cur?.body ?? '')}</textarea>
-            <div class="prose md-preview" id="p-prev"></div>
-          </div>
-          <div style="margin-top:12px;display:flex;gap:8px">
-            <button class="btn" id="p-save">저장</button>
-            ${cur ? `<a class="btn ghost" href="guide.html?c=${cat}&id=${cur.id}" target="_blank">사이트에서 보기</a>
-            <span style="flex:1"></span><button class="btn danger" id="p-del">삭제</button>` : ''}
-          </div>` : '<div class="empty">왼쪽에서 글을 고르거나 새 글을 쓰세요.</div>'}
+        <div class="md-toolbar">
+          <button type="button" class="btn ghost sm" data-ins="h">소제목</button>
+          <button type="button" class="btn ghost sm" data-ins="b">굵게</button>
+          <button type="button" class="btn ghost sm" data-ins="table">표</button>
+          <button type="button" class="btn ghost sm" data-ins="hr">구분선</button>
+          <label class="btn ghost sm">그림<input type="file" id="p-img" accept="image/png,image/jpeg,image/gif,image/webp" hidden></label>
+          <span class="muted" style="font-size:12px">마크다운으로 작성 · 오른쪽에 미리보기</span>
         </div>
+        <div class="md-editor">
+          <textarea class="input" id="p-body" spellcheck="false" placeholder="여기에 ${CATS[cat]} 내용을 작성하세요.">${esc(cur?.body ?? '')}</textarea>
+          <div class="prose md-preview" id="p-prev"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label><input type="checkbox" id="p-pub" ${cur?.published ?? true ? 'checked' : ''}> 공개</label>
+          <button class="btn" id="p-save">저장</button>
+          <a class="btn ghost" href="guide.html?c=${cat}" target="_blank">사이트에서 보기</a>
+        </div>
+        ${extra.length ? `<p class="hint">이전에 작성한 글 ${extra.length}개가 더 있습니다. 사이트에는 위 글만 보입니다.
+          <button type="button" class="btn ghost sm" id="p-clean">이전 글 정리</button></p>` : ''}
       </div>`;
 
     body().querySelectorAll('[data-cat]').forEach(b => b.onclick = () => TABS.posts(b.dataset.cat));
-    body().querySelectorAll('.pa-item').forEach(b => b.onclick = () => TABS.posts(cat, Number(b.dataset.id)));
-    document.getElementById('p-new').onclick = () => TABS.posts(cat, 'new');
-    if (!editing) return;
 
     const ta = document.getElementById('p-body'), prev = document.getElementById('p-prev');
     const preview = () => prev.innerHTML = md(ta.value) || '<p class="muted">미리보기</p>';
@@ -181,6 +167,7 @@ const TABS = {
       h: '\n## 소제목\n',
       b: '**굵은 글씨**',
       table: '\n| 항목 | 내용 |\n| --- | --- |\n| 예시 | 설명 |\n| 예시 | 설명 |\n',
+      hr: '\n\n---\n\n',
     };
     body().querySelectorAll('[data-ins]').forEach(b => b.onclick = () => insert(SNIP[b.dataset.ins]));
     document.getElementById('p-img').onchange = async (e) => {
@@ -189,23 +176,19 @@ const TABS = {
       e.target.value = '';
     };
     document.getElementById('p-save').onclick = async () => {
-      const row = {
-        category: cat, title: document.getElementById('p-title').value.trim(), body: ta.value,
-        sort_order: Number(document.getElementById('p-sort').value) || 0,
-        published: document.getElementById('p-pub').checked, pinned: document.getElementById('p-pin').checked,
-      };
-      if (!row.title) return toast('제목을 입력하세요.', 'error');
+      const row = { category: cat, title: CATS[cat], body: ta.value,
+        published: document.getElementById('p-pub').checked, updated_at: new Date().toISOString() };
       const res = cur
-        ? await sb.from('posts').update({ ...row, updated_at: new Date().toISOString() }).eq('id', cur.id).select().single()
-        : await sb.from('posts').insert(row).select().single();
+        ? await sb.from('posts').update(row).eq('id', cur.id)
+        : await sb.from('posts').insert(row);
       if (res.error) return toast(errMsg(res.error), 'error');
       toast('저장했습니다.');
-      TABS.posts(cat, res.data.id);
+      TABS.posts(cat);
     };
-    const del = document.getElementById('p-del');
-    if (del) del.onclick = async () => {
-      if (!confirm('이 글을 삭제할까요? 되돌릴 수 없습니다.')) return;
-      const { error } = await sb.from('posts').delete().eq('id', cur.id);
+    const clean = document.getElementById('p-clean');
+    if (clean) clean.onclick = async () => {
+      if (!confirm(`위 글만 남기고 이전 글 ${extra.length}개를 삭제합니다. 되돌릴 수 없습니다.`)) return;
+      const { error } = await sb.from('posts').delete().in('id', extra.map(p => p.id));
       error ? toast(errMsg(error), 'error') : TABS.posts(cat);
     };
   },
