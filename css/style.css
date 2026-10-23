@@ -1,5 +1,4 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300..800&display=swap');
 
 :root {
   --bg: #e5e7e4;
@@ -19,8 +18,8 @@
   --enemy: #8a4e47;
   --crit: #a37a2c;
   --radius: 6px;
-  --serif: 'Noto Serif KR', serif;
-  --sans: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --serif: 'Asta Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;   /* 제목 · 숫자 */
+  --sans: 'Asta Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;    /* 본문 */
 }
 
 * { box-sizing: border-box; }

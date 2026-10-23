@@ -2,15 +2,16 @@
 // 운영 방침이 바뀌면 아래 문구를 직접 고치세요.
 import { esc } from './supabase.js';
 import { renderLayout } from './layout.js';
-import { LINKS, SITE_TITLE } from './config.js';
+import { SITE_TITLE } from './config.js';
 
 const UPDATED = '2026.10.23';        // 안내 최종 수정일
 const RETENTION_DAYS = 30;           // 커뮤니티 종료 후 데이터 삭제까지 기간
+const CONTACT_EMAIL = 'mumyeong2523@gmail.com';   // 개인정보 문의처
 
 const page = document.getElementById('page');
 await renderLayout();
 
-const contact = `<a href="${esc(LINKS.twitter)}" target="_blank" rel="noopener">공식 트위터</a>`;
+const contact = `<a href="mailto:${esc(CONTACT_EMAIL)}">${esc(CONTACT_EMAIL)}</a>`;
 
 page.innerHTML = `
   <div class="page-head"><h1>개인정보 · 저작권 안내</h1><span class="sub">최종 수정 ${UPDATED}</span></div>
@@ -66,8 +67,8 @@ page.innerHTML = `
 <tbody>
 <tr><td>Supabase</td><td>로그인, 데이터베이스, 그림 파일 저장</td><td>위 표의 계정 · 캐릭터 · 활동 · 접속 기록 전부</td></tr>
 <tr><td>GitHub Pages</td><td>사이트 화면 파일 제공</td><td>접속 IP 주소, 브라우저 정보</td></tr>
-<tr><td>jsDelivr</td><td>글꼴 · 프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
-<tr><td>Google Fonts</td><td>제목 글꼴 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>jsDelivr</td><td>프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>Google Fonts</td><td>글꼴 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
 </tbody>
 </table>
 <p>트위터 · 신청서 바로가기는 외부 사이트로 이동하는 링크이며, 이동한 뒤에는 해당 사이트의 방침이 적용됩니다.</p>
@@ -78,7 +79,7 @@ page.innerHTML = `
 <ul>
 <li><b>보관 기간:</b> 커뮤니티가 운영되는 동안 보관하며, 커뮤니티 종료 후 <b>${RETENTION_DAYS}일 이내</b>에 모든 계정과 기록을 삭제합니다.</li>
 <li><b>중도 하차:</b> 하차 시 요청하면 해당 계정과 기록을 삭제합니다. 다만 다른 참여자의 기록과 얽힌 정보(전투 로그, 받은 사람에게 남은 선물 기록 등)는 커뮤니티 기록 보존을 위해 남을 수 있습니다.</li>
-<li><b>열람 · 정정 · 삭제 요청:</b> 내 캐릭터 페이지에서 대부분의 정보를 직접 확인할 수 있으며, 그 밖의 요청은 ${contact}으로 문의해 주세요.</li>
+<li><b>열람 · 정정 · 삭제 요청:</b> 내 캐릭터 페이지에서 대부분의 정보를 직접 확인할 수 있으며, 그 밖의 요청은 이메일(${contact})로 문의해 주세요.</li>
 <li>사이트에 로그인하여 이용하는 것은 이 안내에 동의한 것으로 봅니다.</li>
 </ul>
 </article>
@@ -97,8 +98,7 @@ page.innerHTML = `
 <table>
 <thead><tr><th>이름</th><th>제작</th><th>라이선스</th><th>사용처</th></tr></thead>
 <tbody>
-<tr><td>Pretendard v1.3.9</td><td>Kil Hyung-jin (orioncactus)</td><td>SIL Open Font License 1.1</td><td>본문</td></tr>
-<tr><td>Noto Serif KR</td><td>Google · Adobe</td><td>SIL Open Font License 1.1</td><td>제목 · 숫자</td></tr>
+<tr><td>Asta Sans</td><td>42dot (The Asta Sans Project Authors)</td><td>SIL Open Font License 1.1</td><td>사이트 전체</td></tr>
 </tbody>
 </table>
 
