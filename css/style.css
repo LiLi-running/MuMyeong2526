@@ -129,7 +129,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .empty { padding: 40px 0; text-align: center; color: var(--muted); }
 
 /* ---------- 메인 ---------- */
-.home { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start; }
+.home { display: grid; grid-template-columns: minmax(0, 1fr) 250px 260px; gap: 20px; align-items: start; }
 .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .cal-head h2 { margin: 0; font-family: var(--serif); font-size: 20px; }
 .cal-nav { display: flex; gap: 6px; }
@@ -140,7 +140,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .cal-cell.other { background: transparent; color: var(--line-strong); }
 .cal-cell.today .cal-num { background: var(--main); color: var(--on-main); }
 .cal-num { display: inline-block; min-width: 22px; padding: 0 5px; border-radius: 11px; text-align: center; font-size: 12.5px; }
-.cal-ev { display: block; margin-top: 3px; padding: 1px 6px; border-radius: 3px; background: var(--main); color: var(--on-main); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-ev { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin-top: 3px; padding: 1px 5px; border-radius: 3px; background: var(--main); color: var(--on-main); font-size: 11.5px; line-height: 1.35; overflow: hidden; word-break: keep-all; overflow-wrap: anywhere; }
+.cal-ev b { display: block; font-variant-numeric: tabular-nums; }
 .cal-ev.span { background: var(--main-3); }
 
 .side-stack { display: flex; flex-direction: column; gap: 16px; }
@@ -469,8 +470,15 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
 .up-badge { flex-shrink: 0; font-size: 11.5px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--line-strong); color: var(--muted); font-variant-numeric: tabular-nums; }
 .up-badge.on { background: var(--main); border-color: var(--main); color: var(--on-main); }
 .cal-ev b { font-weight: 600; opacity: .85; }
+.cal-ev b + br { display: none; }
 
 /* ---------- 반응형 ---------- */
+/* 화면이 좁으면 다가오는 일정을 달력 아래로 */
+@media (max-width: 1280px) {
+  .home { grid-template-columns: minmax(0, 1fr) 260px; }
+  .home .upcoming { grid-column: 1; grid-row: 2; }
+  .home .side-stack { grid-column: 2; grid-row: 1 / span 2; }
+}
 @media (max-width: 1180px) {
   .arena { grid-template-columns: 1fr 1fr; height: auto; }
   .arena-center { grid-column: 1 / -1; order: -1; }
@@ -487,10 +495,12 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
   .nav { margin-top: 10px; }
   .page { padding: 24px 16px 40px; }
   .home { grid-template-columns: 1fr; }
+  .home .upcoming, .home .side-stack { grid-column: auto; grid-row: auto; }
   .rooms { grid-template-columns: 1fr; }
   .arena { grid-template-columns: 1fr; }
   .cal-cell { min-height: 64px; padding: 4px; }
   .cal-ev { font-size: 10.5px; padding: 0 3px; }
+  .cal-ev b { display: none; }   /* 휴대폰: 달력에는 시간 생략 (다가오는 일정에 표시됨) */
   .picker { grid-template-columns: 1fr; }
   .ctl-grid { grid-template-columns: 1fr 1fr; }
   .ctl-grid .btn { grid-column: 1 / -1; }
