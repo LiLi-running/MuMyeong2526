@@ -441,6 +441,15 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
 .sub-item img { margin: 10px 0; }
 .sub-body { white-space: pre-wrap; font-size: 14px; line-height: 1.8; background: #fbfbfa; padding: 12px; border-radius: 4px; max-height: 420px; overflow-y: auto; }
 
+/* 개인정보 · 저작권 */
+.side-policy { display: block; margin: 12px 20px 0; font-size: 12px; color: var(--on-main-muted); text-decoration: none; text-align: center; }
+.side-policy:hover, .side-policy.active { color: var(--on-main); text-decoration: underline; }
+.login-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+#privacy, #third, #rights, #credits, #ai { scroll-margin-top: 20px; }
+.prose ul { padding-left: 1.3em; }
+.prose li { margin-bottom: .4em; }
+.prose td { vertical-align: top; }
+
 /* ---------- 반응형 ---------- */
 @media (max-width: 1180px) {
   .arena { grid-template-columns: 1fr 1fr; height: auto; }
@@ -453,8 +462,8 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
   .sidebar { position: relative; height: auto; padding: 14px 0; flex-direction: row; flex-wrap: wrap; align-items: center; }
   .brand { padding: 0 16px; flex: 1; }
   .nav-toggle { display: block; margin-right: 12px; background: none; border: 1px solid rgba(229,231,228,.3); color: var(--on-main); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
-  .nav, .side-user { display: none; width: 100%; }
-  .sidebar.open .nav, .sidebar.open .side-user { display: block; }
+  .nav, .side-user, .side-policy { display: none; width: 100%; }
+  .sidebar.open .nav, .sidebar.open .side-user, .sidebar.open .side-policy { display: block; }
   .nav { margin-top: 10px; }
   .page { padding: 24px 16px 40px; }
   .home { grid-template-columns: 1fr; }

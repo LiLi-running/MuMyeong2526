@@ -22,7 +22,8 @@ if (me) {
       <label class="field"><span>아이디</span><input class="input" name="id" autocomplete="username" required></label>
       <label class="field"><span>비밀번호</span><input class="input" name="pw" type="password" autocomplete="current-password" required></label>
       <button class="btn block" type="submit">로그인</button>
-    </form>`;
+    </form>
+    <p class="login-note">로그인하면 <a href="policy.html">개인정보 수집 · 이용 안내</a>에 동의한 것으로 봅니다.</p>`;
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = e.currentTarget, btn = f.querySelector('button');

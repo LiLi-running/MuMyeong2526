@@ -42,7 +42,8 @@ export async function renderLayout() {
     </a>
     <button class="nav-toggle" aria-label="메뉴 열기">☰</button>
     <nav class="nav">${groups}</nav>
-    <div class="side-user" id="side-user"></div>`;
+    <div class="side-user" id="side-user"></div>
+    <a class="side-policy${current === 'policy.html' ? ' active' : ''}" href="policy.html">개인정보 · 저작권 안내</a>`;
 
   aside.querySelector('.nav-toggle').addEventListener('click', () => aside.classList.toggle('open'));
 

@@ -80,6 +80,7 @@ tasks.html          과제 (상시: 별 잡기 / 기간: 글+그림 제출)
 battle.html         차원의 틈
 characters.html     명단
 me.html             내 캐릭터 · 비밀번호 변경
+policy.html         개인정보 수집·이용 · 저작권·출처 · AI 사용 안내 (모든 페이지 왼쪽 아래 링크)
 admin.html          관리자 페이지 (메뉴에 링크 없음)
 css/style.css       디자인 (#e5e7e4 / #3c3f42)
 js/config.js        ★ Supabase 주소·키, 트위터·신청서 링크
@@ -90,6 +91,12 @@ js/guard.js         파일 버전이 섞였을 때 안내 표시
 js/*.js             각 페이지 화면
 supabase/01~05      서버 (테이블 · 권한 · 판정 함수 · 이미지 저장소)
 ```
+
+## 개인정보 · 저작권 안내 고치기
+
+`js/policy.js` 맨 위의 `UPDATED`(수정일)와 `RETENTION_DAYS`(종료 후 삭제 기간)를 바꾸고, 본문 문구도 그 파일에서 직접 고칩니다.
+문의처는 `js/config.js`의 트위터 주소가 자동으로 연결됩니다.
+기능을 추가하면서 새로 저장하는 정보나 외부 서비스가 생기면 이 페이지도 함께 고쳐 주세요.
 
 ## 관리자 페이지 보안
 
