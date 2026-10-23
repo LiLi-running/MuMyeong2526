@@ -41,7 +41,22 @@ if (me) {
 // ---------- 달력 ----------
 const pad = n => String(n).padStart(2, '0');
 const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-let view = new Date(); view.setDate(1);
+// 오늘 날짜는 항상 한국 시간 기준
+const kstToday = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+const hm = t => t ? t.slice(0, 5) : '';
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+let view = new Date(kstToday() + 'T00:00:00'); view.setDate(1);
+
+function evLabel(ev, key) {
+  // 시작일 칸에만 시작 시간을 붙임
+  const t = key === ev.starts_on && ev.start_time ? `<b>${hm(ev.start_time)}</b> ` : '';
+  return t + esc(ev.title);
+}
+function evTitle(ev) {
+  const range = `${ev.starts_on}${ev.start_time ? ' ' + hm(ev.start_time) : ''}`
+    + (ev.ends_on && ev.ends_on !== ev.starts_on ? ` ~ ${ev.ends_on}${ev.end_time ? ' ' + hm(ev.end_time) : ''}` : ev.end_time ? ` ~ ${hm(ev.end_time)}` : '');
+  return `${range}  ${ev.title}${ev.note ? ' — ' + ev.note : ''}`;
+}
 
 async function renderCalendar() {
   const y = view.getFullYear(), m = view.getMonth();
@@ -54,11 +69,11 @@ async function renderCalendar() {
   const { data: events } = await sb.from('schedules')
     .select('*')
     .lte('starts_on', ymd(end))
-    .order('starts_on');
+    .order('starts_on').order('start_time', { nullsFirst: true });
   const list = (events ?? []).filter(ev => (ev.ends_on ?? ev.starts_on) >= ymd(start));
 
-  const today = ymd(new Date());
-  const dows = ['일', '월', '화', '수', '목', '금', '토'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  const today = kstToday();
+  const dows = DOW.map(d => `<div class="cal-dow">${d}</div>`).join('');
   let cells = '';
   const weeks = Math.ceil((first.getDay() + new Date(y, m + 1, 0).getDate()) / 7);
   for (let i = 0; i < weeks * 7; i++) {
@@ -67,13 +82,48 @@ async function renderCalendar() {
     const evs = list.filter(ev => ev.starts_on <= key && (ev.ends_on ?? ev.starts_on) >= key);
     cells += `<div class="cal-cell${d.getMonth() !== m ? ' other' : ''}${key === today ? ' today' : ''}">
       <span class="cal-num">${d.getDate()}</span>
-      ${evs.map(ev => `<span class="cal-ev${ev.ends_on && ev.ends_on !== ev.starts_on ? ' span' : ''}" title="${esc(ev.title)}${ev.note ? ' — ' + esc(ev.note) : ''}">${esc(ev.title)}</span>`).join('')}
+      ${evs.map(ev => `<span class="cal-ev${ev.ends_on && ev.ends_on !== ev.starts_on ? ' span' : ''}" title="${esc(evTitle(ev))}">${evLabel(ev, key)}</span>`).join('')}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = dows + cells;
 }
 
+// ---------- 다가오는 일정 (가까운 순) ----------
+async function renderUpcoming() {
+  const today = kstToday();
+  const { data, error } = await sb.from('schedules').select('*')
+    .or(`ends_on.gte.${today},and(ends_on.is.null,starts_on.gte.${today})`)
+    .order('starts_on').order('start_time', { nullsFirst: true })
+    .limit(8);
+  const box = document.getElementById('upcoming');
+  if (error || !(data ?? []).length) { box.textContent = '예정된 일정이 없습니다.'; return; }
+
+  const dayDiff = d => Math.round((new Date(d + 'T00:00:00') - new Date(today + 'T00:00:00')) / 864e5);
+  box.classList.remove('muted');
+  box.innerHTML = data.map(ev => {
+    const d = new Date(ev.starts_on + 'T00:00:00');
+    const diff = dayDiff(ev.starts_on);
+    const badge = diff < 0 ? '<span class="up-badge on">진행 중</span>'
+      : diff === 0 ? '<span class="up-badge on">오늘</span>'
+      : `<span class="up-badge">D-${diff}</span>`;
+    const multi = ev.ends_on && ev.ends_on !== ev.starts_on;
+    const endTxt = multi ? ` ~ ${Number(ev.ends_on.slice(5, 7))}.${Number(ev.ends_on.slice(8))}${ev.end_time ? ' ' + hm(ev.end_time) : ''}`
+      : ev.end_time ? ` ~ ${hm(ev.end_time)}` : '';
+    return `<button type="button" class="up-item" data-ym="${ev.starts_on.slice(0, 7)}" title="${esc(evTitle(ev))}">
+      <span class="up-date"><b>${d.getMonth() + 1}.${d.getDate()}</b><small>${DOW[d.getDay()]}</small></span>
+      <span class="up-body"><span class="up-title">${esc(ev.title)}</span>
+        <span class="up-time">${ev.start_time ? hm(ev.start_time) : '하루 종일'}${endTxt}</span></span>
+      ${badge}
+    </button>`;
+  }).join('');
+  // 누르면 달력이 그 달로 이동
+  box.querySelectorAll('.up-item').forEach(b => b.onclick = () => {
+    view = new Date(b.dataset.ym + '-01T00:00:00'); renderCalendar();
+  });
+}
+
 document.getElementById('cal-prev').onclick = () => { view.setMonth(view.getMonth() - 1); renderCalendar(); };
 document.getElementById('cal-next').onclick = () => { view.setMonth(view.getMonth() + 1); renderCalendar(); };
-document.getElementById('cal-today').onclick = () => { view = new Date(); view.setDate(1); renderCalendar(); };
+document.getElementById('cal-today').onclick = () => { view = new Date(kstToday() + 'T00:00:00'); view.setDate(1); renderCalendar(); };
 renderCalendar();
+renderUpcoming();

@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300..800&display=swap');
+/* 글꼴
+   본문: Pretendard
+   제목 · 숫자: Chiron Sung HK — 한글이 거의 없는 글꼴이라 숫자 · 영문만 받아오고(text=),
+                한글은 Noto Serif KR 로 이어서 표시합니다. */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Chiron+Sung+HK:wght@400;500;700&text=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.%2C%3A%3B%2F-%2B%25%28%29%5B%5D~%21%3F%23%26%C3%97%C2%B7&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&display=swap');
 
 :root {
   --bg: #e5e7e4;
@@ -18,8 +24,8 @@
   --enemy: #8a4e47;
   --crit: #a37a2c;
   --radius: 6px;
-  --serif: 'Asta Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;   /* 제목 · 숫자 */
-  --sans: 'Asta Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;    /* 본문 */
+  --serif: 'Chiron Sung HK', 'Noto Serif KR', 'Apple Myungjo', 'Batang', serif;   /* 제목 · 숫자 */
+  --sans: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;   /* 본문 */
 }
 
 * { box-sizing: border-box; }
@@ -448,6 +454,21 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
 .prose ul { padding-left: 1.3em; }
 .prose li { margin-bottom: .4em; }
 .prose td { vertical-align: top; }
+
+/* 다가오는 일정 */
+.upcoming h2 { margin-bottom: 10px; }
+.up-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 0; border: 0; border-bottom: 1px dashed var(--line); background: none; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.up-item:last-child { border-bottom: 0; }
+.up-item:hover .up-title { text-decoration: underline; }
+.up-date { width: 40px; flex-shrink: 0; text-align: center; line-height: 1.2; }
+.up-date b { display: block; font-family: var(--serif); font-size: 16px; }
+.up-date small { color: var(--muted); font-size: 11.5px; }
+.up-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.up-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.up-time { font-size: 12px; color: var(--muted); }
+.up-badge { flex-shrink: 0; font-size: 11.5px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--line-strong); color: var(--muted); font-variant-numeric: tabular-nums; }
+.up-badge.on { background: var(--main); border-color: var(--main); color: var(--on-main); }
+.cal-ev b { font-weight: 600; opacity: .85; }
 
 /* ---------- 반응형 ---------- */
 @media (max-width: 1180px) {

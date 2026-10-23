@@ -67,8 +67,8 @@ page.innerHTML = `
 <tbody>
 <tr><td>Supabase</td><td>로그인, 데이터베이스, 그림 파일 저장</td><td>위 표의 계정 · 캐릭터 · 활동 · 접속 기록 전부</td></tr>
 <tr><td>GitHub Pages</td><td>사이트 화면 파일 제공</td><td>접속 IP 주소, 브라우저 정보</td></tr>
-<tr><td>jsDelivr</td><td>프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
-<tr><td>Google Fonts</td><td>글꼴 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>jsDelivr</td><td>본문 글꼴 · 프로그램 라이브러리 전송(CDN)</td><td>접속 IP 주소, 브라우저 정보</td></tr>
+<tr><td>Google Fonts</td><td>제목 글꼴 전송</td><td>접속 IP 주소, 브라우저 정보</td></tr>
 </tbody>
 </table>
 <p>트위터 · 신청서 바로가기는 외부 사이트로 이동하는 링크이며, 이동한 뒤에는 해당 사이트의 방침이 적용됩니다.</p>
@@ -98,7 +98,9 @@ page.innerHTML = `
 <table>
 <thead><tr><th>이름</th><th>제작</th><th>라이선스</th><th>사용처</th></tr></thead>
 <tbody>
-<tr><td>Asta Sans</td><td>42dot (The Asta Sans Project Authors)</td><td>SIL Open Font License 1.1</td><td>사이트 전체</td></tr>
+<tr><td>Pretendard v1.3.9</td><td>Kil Hyung-jin (orioncactus)</td><td>SIL Open Font License 1.1</td><td>본문</td></tr>
+<tr><td>Chiron Sung HK</td><td>Tamcy (The Chiron Sung HK Project Authors)</td><td>SIL Open Font License 1.1</td><td>제목 · 숫자의 숫자와 영문</td></tr>
+<tr><td>Noto Serif KR</td><td>Google · Adobe</td><td>SIL Open Font License 1.1</td><td>제목의 한글</td></tr>
 </tbody>
 </table>
 

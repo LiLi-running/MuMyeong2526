@@ -447,27 +447,32 @@ const TABS = {
 
   // ------------------------------------------------------------ 일정
   async schedule() {
-    const { data } = await sb.from('schedules').select('*').order('starts_on', { ascending: false }).limit(100);
+    const { data } = await sb.from('schedules').select('*').order('starts_on', { ascending: false }).order('start_time', { ascending: false, nullsFirst: true }).limit(100);
     body().innerHTML = `<div class="stack">
       <div class="card"><h3>일정 추가</h3>
         <div class="row">
           <label class="field"><span>시작일</span><input class="input" type="date" id="s-start"></label>
+          <label class="field"><span>시작 시간 (선택)</span><input class="input" type="time" id="s-time"></label>
           <label class="field"><span>종료일 (선택)</span><input class="input" type="date" id="s-end"></label>
+          <label class="field"><span>종료 시간 (선택)</span><input class="input" type="time" id="s-etime"></label>
           <label class="field" style="flex:2"><span>제목</span><input class="input" id="s-title"></label>
           <label class="field" style="flex:2"><span>메모 (선택)</span><input class="input" id="s-note"></label>
         </div>
+        <p class="hint" style="margin-top:0">시간은 한국 시간 기준입니다. 비워 두면 하루 종일 일정으로 표시됩니다.</p>
         <button class="btn" id="s-add">추가</button>
       </div>
       <div class="card"><h3>등록된 일정</h3>
         ${data?.length ? `<table class="table"><thead><tr><th>기간</th><th>제목</th><th>메모</th><th></th></tr></thead><tbody>${
-          data.map(s => `<tr><td>${s.starts_on}${s.ends_on && s.ends_on !== s.starts_on ? ' ~ ' + s.ends_on : ''}</td><td>${esc(s.title)}</td><td class="muted">${esc(s.note ?? '')}</td>
+          data.map(s => `<tr><td>${s.starts_on}${s.start_time ? ' ' + s.start_time.slice(0, 5) : ''}${(s.ends_on && s.ends_on !== s.starts_on) || s.end_time ? ' ~ ' + (s.ends_on && s.ends_on !== s.starts_on ? s.ends_on + ' ' : '') + (s.end_time ? s.end_time.slice(0, 5) : '') : ''}</td><td>${esc(s.title)}</td><td class="muted">${esc(s.note ?? '')}</td>
             <td><button class="btn sm danger" data-del="${s.id}">삭제</button></td></tr>`).join('')}</tbody></table>` : '<div class="muted">등록된 일정이 없습니다.</div>'}
       </div></div>`;
 
     document.getElementById('s-add').addEventListener('click', async () => {
       const v = id => document.getElementById(id).value.trim();
       if (!v('s-start') || !v('s-title')) return toast('시작일과 제목을 입력하세요.', 'error');
-      const { error } = await sb.from('schedules').insert({ starts_on: v('s-start'), ends_on: v('s-end') || null, title: v('s-title'), note: v('s-note') || null });
+      if (v('s-end') && v('s-end') < v('s-start')) return toast('종료일이 시작일보다 빠릅니다.', 'error');
+      const { error } = await sb.from('schedules').insert({ starts_on: v('s-start'), start_time: v('s-time') || null,
+        ends_on: v('s-end') || null, end_time: v('s-etime') || null, title: v('s-title'), note: v('s-note') || null });
       error ? toast(errMsg(error), 'error') : (toast('추가했습니다.'), TABS.schedule());
     });
     body().querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {

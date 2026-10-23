@@ -12,9 +12,9 @@
    - Database password는 따로 잘 보관하세요.
 2. 왼쪽 메뉴 **SQL Editor** → New query
    - `supabase/` 폴더의 파일을 **번호 순서대로** 하나씩 붙여 넣고 **Run**
-     `01_schema` → `02_battle_functions` → `03_team_passives` → `04_features` → `05_storage`
+     `01_schema` → `02_battle_functions` → `03_team_passives` → `04_features` → `05_storage` → `06_schedule_time`
 
-> **이미 01~03을 실행했다면:** `04_features.sql` → `05_storage.sql` 만 실행하면 됩니다.
+> **이미 01~05를 실행했다면:** `06_schedule_time.sql` 만 실행하면 됩니다.
 > 모든 SQL 파일은 여러 번 다시 실행해도 안전합니다. 규칙이 바뀌면 바뀐 파일만 다시 실행하세요.
 > (단, 02를 다시 실행했다면 04도 이어서 다시 실행해 주세요.)
 3. **Authentication → Sign In / Providers**
@@ -82,7 +82,7 @@ characters.html     명단
 me.html             내 캐릭터 · 비밀번호 변경
 policy.html         개인정보 수집·이용 · 저작권·출처 · AI 사용 안내 (모든 페이지 왼쪽 아래 링크)
 admin.html          관리자 페이지 (메뉴에 링크 없음)
-css/style.css       디자인 (#e5e7e4 / #3c3f42)
+css/style.css       디자인 (#e5e7e4 / #3c3f42), 글꼴: 본문 Pretendard · 제목/숫자 Chiron Sung HK(숫자·영문) + Noto Serif KR(한글)
 js/config.js        ★ Supabase 주소·키, 트위터·신청서 링크
 js/supabase.js      로그인 · 공통 함수 · 팀 패시브 표시 문구
 js/ui.js            마크다운 · 이미지 업로드 · 창 · 날짜
