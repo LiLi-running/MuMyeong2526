@@ -47,7 +47,7 @@ async function init() {
       </div>
     </section>
     ${past.length ? `<section class="card" style="margin-top:20px"><h3>지난 운세</h3>
-      <table class="table"><tbody>${past.map(f => `<tr><td class="muted" style="width:110px">${fmtDate(f.day)}</td>
+      <table class="table past-fortune"><tbody>${past.map(f => `<tr><td class="muted pf-date">${fmtDate(f.day)}</td>
         <td>${esc(f.star)} · ${esc(f.grade_name)}</td><td class="muted">${esc(f.message)}</td><td style="text-align:right">+${f.threads}</td></tr>`).join('')}</tbody></table></section>` : ''}`;
 
   const btn = document.getElementById('btn-draw');

@@ -53,6 +53,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 0 24px 26px; text-decoration: none; }
 .brand-mark { color: var(--gold); font-size: 18px; }
 .brand-name { font-family: var(--serif); font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+.side-head { display: contents; }
+.side-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .nav-toggle { display: none; }
 .nav { flex: 1; }
 .nav-group { padding: 10px 0 12px; border-top: 1px solid rgba(229,231,228,.08); }
@@ -472,6 +474,9 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
 .cal-ev b { font-weight: 600; opacity: .85; }
 .cal-ev b + br { display: none; }
 
+/* 지난 운세 */
+.past-fortune .pf-date { width: 110px; }
+
 /* ---------- 반응형 ---------- */
 /* 화면이 좁으면 다가오는 일정을 달력 아래로 */
 @media (max-width: 1280px) {
@@ -486,18 +491,103 @@ dialog.modal::backdrop { background: rgba(43,45,47,.45); }
   .chat-list { max-height: 260px; }
 }
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { position: relative; height: auto; padding: 14px 0; flex-direction: row; flex-wrap: wrap; align-items: center; }
-  .brand { padding: 0 16px; flex: 1; }
-  .nav-toggle { display: block; margin-right: 12px; background: none; border: 1px solid rgba(229,231,228,.3); color: var(--on-main); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
-  .nav, .side-user, .side-policy { display: none; width: 100%; }
-  .sidebar.open .nav, .sidebar.open .side-user, .sidebar.open .side-policy { display: block; }
-  .nav { margin-top: 10px; }
+  /* 상단바 + 펼침 메뉴 */
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar { position: sticky; top: 0; z-index: 50; height: auto; padding: 0; overflow: visible; display: block; }
+  .side-head { display: flex; align-items: center; height: 56px; padding: 0 8px 0 16px; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
+  .brand { padding: 0; flex: 1; }
+  .brand-name { font-size: 19px; }
+  .nav-toggle { display: flex; flex-direction: column; justify-content: center; gap: 5px; width: 44px; height: 44px; padding: 0 11px; background: none; border: 0; cursor: pointer; }
+  .nav-toggle span { display: block; height: 2px; border-radius: 1px; background: var(--on-main); transition: transform .2s, opacity .2s; }
+  .sidebar.open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .sidebar.open .nav-toggle span:nth-child(2) { opacity: 0; }
+  .sidebar.open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .side-panel { display: none; position: fixed; left: 0; right: 0; bottom: 0; top: calc(56px + env(safe-area-inset-top)); background: var(--main); overflow-y: auto; overscroll-behavior: contain; padding: 4px 0 calc(24px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(229,231,228,.1); }
+  .sidebar.open .side-panel { display: flex; }
+  .nav { flex: none; }
+  .nav-link { padding-top: 11px; padding-bottom: 11px; font-size: 15.5px; }
+  .side-user { margin: 16px 16px 0; }
+  .side-policy { margin: 14px 16px 0; padding: 8px 0; }
+  html.menu-open, html.menu-open body { overflow: hidden; }
+
+  /* 입력창을 누를 때 아이폰이 화면을 확대하지 않도록 16px */
+  .input, select.input, textarea.input, .chat-form .input, .admin-bar .input, .bulk .input, .table .input { font-size: 16px; }
+  .btn { min-height: 40px; }
+  .btn.sm { min-height: 34px; }
+  .page-head { margin-bottom: 18px; gap: 4px 10px; }
+  .page-head h1 { font-size: 23px; }
+  .card { padding: 16px; }
+
+  /* 표: 찌그러지지 않고 옆으로 밀어서 보기 */
+  #tab-body .table:not(.rank), .history table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+  #tab-body .table .input { min-width: 96px; }
+  #tab-body .table td:has(> .input[data-f="name"]) .input { min-width: 120px; }
+  .prose table { white-space: normal; }
+  .prose th, .prose td { min-width: 120px; }
+  .prose th:first-child, .prose td:first-child { min-width: 64px; }
+
+  /* 안내 페이지 목차: 가로로 넘기는 칩 */
+  .doc-layout .toc { display: flex; gap: 6px; overflow-x: auto; padding: 8px; position: sticky; top: calc(56px + env(safe-area-inset-top)); z-index: 5; scrollbar-width: none; }
+  .doc-layout .toc::-webkit-scrollbar { display: none; }
+  .toc-link { flex-shrink: 0; white-space: nowrap; border-left: 0; border-radius: 16px; padding: 6px 12px; font-size: 13.5px; }
+  .toc-link.active { background: var(--main); color: var(--on-main); }
+  #privacy, #third, #rights, #credits, #ai { scroll-margin-top: 120px; }
+
+  /* 상점: 2열 */
+  .item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .item { padding: 10px; gap: 6px; }
+  .item-name { font-size: 15px; }
+  .item-desc { font-size: 12.5px; }
+  .item-foot { flex-wrap: wrap; gap: 2px 8px; }
+  .item .btn { font-size: 13px; padding: 6px 8px; }
+
+  /* 지난 운세: 날짜 · 별 위, 문구 아래 */
+  .past-fortune tr { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .past-fortune td { padding: 0; border: 0; }
+  .past-fortune td:nth-child(3) { grid-column: 1 / -1; grid-row: 2; font-size: 13.5px; }
+  .past-fortune td:nth-child(4) { grid-column: 3; grid-row: 1; }
+
+  /* 모달: 아래에서 올라오는 시트 */
+  dialog.modal, dialog.modal.wide { width: 100%; max-width: none; margin: auto 0 0; border-radius: 12px 12px 0 0; max-height: 88vh; padding-bottom: env(safe-area-inset-bottom); }
+
+  /* 내 캐릭터 머리 */
+  .me-head { gap: 14px; }
+  .me-img { width: 72px; height: 72px; }
+  .me-name { font-size: 21px; }
+  .me-threads { width: 100%; display: flex; align-items: baseline; gap: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .me-threads .num { font-size: 28px; }
+
+  /* 탭: 옆으로 넘기기 */
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 9px 14px; flex-shrink: 0; }
+
+  /* 전투방: 양쪽 체력 나란히 → 로그 → 행동 결정 → 채팅 */
+  .arena { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; gap: 10px; }
+  .arena-col { display: contents; }
+  .arena .panel { grid-column: 1 / -1; }
+  .side-ally > .panel:first-child  { grid-column: 1; order: 1; }
+  .side-enemy > .panel:first-child { grid-column: 2; order: 1; }
+  .arena-center .log { order: 2; max-height: 300px; }
+  .arena-center .control { order: 3; }
+  .side-ally .chat { order: 4; }
+  .side-enemy .chat { order: 5; }
+  .arena .chat-list { max-height: 240px; min-height: 120px; }
+  .side-ally > .panel:first-child .panel-head, .side-enemy > .panel:first-child .panel-head { padding: 9px 10px; }
+  .side-ally > .panel:first-child .panel-head h3, .side-enemy > .panel:first-child .panel-head h3 { font-size: 13.5px; }
+  .side-ally > .panel:first-child .label, .side-enemy > .panel:first-child .label { display: none; }
+  .arena .panel-body { padding: 8px 10px; }
+  .hp-row { padding: 7px 0; }
+  .hp-top { flex-wrap: wrap; font-size: 13px; }
+  .hp-name small { display: none; }
+  .hp-num { font-size: 12px; }
+  .passive-note { font-size: 11.5px; }
+  .admin-bar { gap: 6px; }
+  .admin-bar .input { flex: 1 1 120px; }
   .page { padding: 24px 16px 40px; }
   .home { grid-template-columns: 1fr; }
   .home .upcoming, .home .side-stack { grid-column: auto; grid-row: auto; }
   .rooms { grid-template-columns: 1fr; }
-  .arena { grid-template-columns: 1fr; }
   .cal-cell { min-height: 64px; padding: 4px; }
   .cal-ev { font-size: 10.5px; padding: 0 3px; }
   .cal-ev b { display: none; }   /* 휴대폰: 달력에는 시간 생략 (다가오는 일정에 표시됨) */

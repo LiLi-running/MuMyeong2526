@@ -36,16 +36,33 @@ export async function renderLayout() {
   ).join('');
 
   aside.innerHTML = `
-    <a class="brand" href="index.html">
-      <span class="brand-mark">✦</span>
-      <span class="brand-name">${esc(SITE_TITLE)}</span>
-    </a>
-    <button class="nav-toggle" aria-label="메뉴 열기">☰</button>
-    <nav class="nav">${groups}</nav>
-    <div class="side-user" id="side-user"></div>
-    <a class="side-policy${current === 'policy.html' ? ' active' : ''}" href="policy.html">개인정보 · 저작권 안내</a>`;
+    <div class="side-head">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">✦</span>
+        <span class="brand-name">${esc(SITE_TITLE)}</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-panel">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="side-panel" id="side-panel">
+      <nav class="nav">${groups}</nav>
+      <div class="side-user" id="side-user"></div>
+      <a class="side-policy${current === 'policy.html' ? ' active' : ''}" href="policy.html">개인정보 · 저작권 안내</a>
+    </div>`;
 
-  aside.querySelector('.nav-toggle').addEventListener('click', () => aside.classList.toggle('open'));
+  // 휴대폰: ☰ 버튼으로 메뉴 패널 열고 닫기
+  const toggle = aside.querySelector('.nav-toggle');
+  const setOpen = (open) => {
+    aside.classList.toggle('open', open);
+    document.documentElement.classList.toggle('menu-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+  };
+  toggle.addEventListener('click', () => setOpen(!aside.classList.contains('open')));
+  aside.querySelector('.side-panel').addEventListener('click', e => { if (e.target.closest('a')) setOpen(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  matchMedia('(min-width: 901px)').addEventListener('change', e => { if (e.matches) setOpen(false); });
 
   const me = await currentProfile();
   const box = document.getElementById('side-user');
